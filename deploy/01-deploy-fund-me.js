@@ -1,6 +1,7 @@
 const { network } = require("hardhat")
 const { networkConfig, developmentChains } = require("../helper-hardhat-config")
 const { verify } = require("../utils/verify")
+require("dotenv").config()
 
 module.exports = async (hre) => {
   const { getNamedAccounts, deployments } = hre
@@ -9,7 +10,8 @@ module.exports = async (hre) => {
   const chainId = network.config.chainId
 
   let ethUsdPriceFeedAddress
-  if (developmentChains.includes(network.name)) {
+  //if (developmentChains.includes(network.name)) {
+  if (chainId == 31337) {
     const ethUsdAggregator = await deployments.get("MockV3Aggregator")
     ethUsdPriceFeedAddress = ethUsdAggregator.address
   } else {

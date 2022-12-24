@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.7;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./PriceConverter.sol";
@@ -33,13 +33,13 @@ contract FundMe {
     s_priceFeed = AggregatorV3Interface(priceFeedAddress);
   }
 
-  receive() external payable {
-    fund();
-  }
+  // receive() external payable {
+  //   fund();
+  // }
 
-  fallback() external payable {
-    fund();
-  }
+  // fallback() external payable {
+  //   fund();
+  // }
 
   function fund() public payable {
     require(
@@ -51,7 +51,7 @@ contract FundMe {
     s_funders.push(msg.sender);
   }
 
-  function withdraw() public payable onlyOwner {
+  function withdraw() public onlyOwner {
     for (
       uint256 funderIndex = 0;
       funderIndex < s_funders.length;
@@ -67,13 +67,11 @@ contract FundMe {
     // bool sendSuccess = payable(msg.sender).send(address(this).balance);
     // require(sendSuccess, "Send failed");
     // call
-    (bool callSuccess, ) = payable(msg.sender).call{
-      value: address(this).balance
-    }("");
-    require(callSuccess, "Call failed");
+    (bool success, ) = i_owner.call{value: address(this).balance}("");
+    require(success);
   }
 
-  function cheaperWithdraw() public payable onlyOwner {
+  function cheaperWithdraw() public onlyOwner {
     address[] memory funders = s_funders;
     //mappings cant be in memory
     for (uint256 funderIndex = 0; funderIndex < funders.length; funderIndex++) {
@@ -81,14 +79,16 @@ contract FundMe {
       s_addressToAmountFunded[funder] = 0;
     }
     s_funders = new address[](0);
-    (bool callSuccess, ) = payable(msg.sender).call{
-      value: address(this).balance
-    }("");
-    require(callSuccess, "Call failed");
+    (bool success, ) = i_owner.call{value: address(this).balance}("");
+    require(success);
   }
 
   function getOwner() public view returns (address) {
     return i_owner;
+  }
+
+  function getVersion() public view returns (uint256) {
+    return s_priceFeed.version();
   }
 
   function getFunder(uint256 index) public view returns (address) {
